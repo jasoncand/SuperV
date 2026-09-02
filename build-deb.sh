@@ -95,7 +95,7 @@ Depends: python3 (>= 3.8), python3-gi, gir1.2-gtk-3.0, python3-xlib, xclip, xdot
 Recommends: cinnamon-desktop-environment
 Section: utils
 Priority: optional
-Maintainer: Jason Cand <jasoncand@example.com>
+Maintainer: Jason Cand <jasoncand@gmail.com>
 Homepage: https://github.com/jasoncand/SuperV
 Description: Windows-style clipboard manager for Linux Mint
  A lightweight clipboard-history manager that mimics Windows 10/11's
