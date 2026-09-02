@@ -1,0 +1,20 @@
+Source: superv
+Section: utils
+Priority: optional
+Maintainer: SuperV Maintainers <superv@example.com>
+Build-Depends: debhelper-compat (= 13), python3, dh-python
+Standards-Version: 4.6.2
+Homepage: https://github.com/example/superv
+
+Package: superv
+Architecture: all
+Depends: python3 (>= 3.8), python3-gi, gir1.2-gtk-3.0, xclip, xdotool
+Recommends: cinnamon-desktop-environment
+Description: Windows-style clipboard manager for Linux Mint
+ A lightweight clipboard-history manager that mimics Windows 10/11's
+ Super+V panel. Features a dark popup with search, previews, timestamps,
+ pin support, image clipboard capture, and a full library window for
+ browsing all copied items.
+ .
+ Press Super+V to toggle the popup. Pin items for persistence across
+ reboots. Supports text, images, and file URIs.

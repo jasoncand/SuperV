@@ -1,0 +1,26 @@
+#!/bin/bash
+set -e
+
+# Create autostart directory and link autostart file
+AUTOSTART_DIR="$HOME/.config/autostart"
+mkdir -p "$AUTOSTART_DIR"
+
+if [ -f /usr/share/superv/autostart.desktop ]; then
+    cp /usr/share/superv/autostart.desktop "$AUTOSTART_DIR/superv.desktop"
+fi
+
+# Create data directory
+mkdir -p "$HOME/.local/share/superv"
+
+echo ""
+echo "SuperV installed successfully!"
+echo ""
+echo "To use: Press Super+V to open the clipboard manager"
+echo ""
+echo "NOTE: You need to bind the keyboard shortcut manually:"
+echo "  1. Open System Settings -> Keyboard -> Shortcuts -> Custom Shortcuts"
+echo "  2. Add a custom shortcut:"
+echo "     Name:    SuperV"
+echo "     Command: /usr/bin/superv-toggle"
+echo "  3. Click 'Unassigned', press Super+V"
+echo ""

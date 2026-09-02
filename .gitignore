@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+*.zip
+build/
+*.deb
+.commandcode/
+.cache/
+*.log
+.DS_Store
+Thumbs.db

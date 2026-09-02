@@ -1,0 +1,4 @@
+superv.py usr/share/superv
+superv-toggle.sh usr/share/superv
+superv-icon.png usr/share/superv
+seed_pin.py usr/share/superv

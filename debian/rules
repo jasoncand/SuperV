@@ -1,0 +1,79 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@ --with python3 --buildsystem=pydist
+
+override_dh_auto_install:
+	# Install main files to /usr/share/superv
+	install -d debian/superv/usr/share/superv
+	install -m 644 superv.py debian/superv/usr/share/superv/superv-daemon.py
+	install -m 755 superv-toggle.sh debian/superv/usr/share/superv/superv-toggle
+	install -m 644 superv-icon.png debian/superv/usr/share/superv/superv-icon.png
+	install -m 644 seed_pin.py debian/superv/usr/share/superv/seed_pin.py
+
+	# Create wrapper script in /usr/bin
+	install -d debian/superv/usr/bin
+	cat > debian/superv/usr/bin/superv << 'WRAPPER'
+#!/bin/bash
+exec /usr/bin/python3 /usr/share/superv/superv-daemon.py "$@"
+WRAPPER
+	chmod 755 debian/superv/usr/bin/superv
+
+	# Create toggle wrapper in /usr/bin
+	cat > debian/superv/usr/bin/superv-toggle << 'WRAPPER'
+#!/bin/bash
+FIFO="${XDG_RUNTIME_DIR:-/tmp}/superv.fifo"
+
+start_daemon() {
+    nohup /usr/bin/python3 /usr/share/superv/superv-daemon.py >"$HOME/.cache/superv.log" 2>&1 &
+    sleep 1.5
+}
+
+if ! pgrep -f superv-daemon.py >/dev/null; then
+    start_daemon
+fi
+
+mkdir -p "$(dirname "$FIFO")"
+[ -p "$FIFO" ] || mkfifo "$FIFO"
+
+echo "toggle" >"$FIFO"
+WRAPPER
+	chmod 755 debian/superv/usr/bin/superv-toggle
+
+	# Install .desktop file for app launcher
+	install -d debian/superv/usr/share/applications
+	cat > debian/superv/usr/share/applications/superv.desktop << 'DESKTOP'
+[Desktop Entry]
+Type=Application
+Name=SuperV
+GenericName=Clipboard Manager
+Comment=Windows-style clipboard history manager
+Exec=/usr/bin/superv-toggle
+Icon=superv
+Terminal=false
+Categories=Utility;
+Keywords=clipboard;history;paste;
+DESKTOP
+
+	# Install icon
+	install -d debian/superv/usr/share/icons/hicolor/256x256/apps
+	install -m 644 superv-icon.png debian/superv/usr/share/icons/hicolor/256x256/apps/superv.png
+
+	# Create autostart .desktop file
+	install -d debian/superv/usr/share/superv
+	cat > debian/superv/usr/share/superv/autostart.desktop << 'AUTOSTART'
+[Desktop Entry]
+Type=Application
+Name=SuperV
+Comment=Clipboard history manager (Super+V)
+Exec=/usr/bin/superv
+X-GNOME-Autostart-enabled=true
+Terminal=false
+Hidden=false
+AUTOSTART
+
+override_dh_auto_build:
+	# Nothing to build for pure Python
+
+override_dh_auto_test:
+	# Skip tests

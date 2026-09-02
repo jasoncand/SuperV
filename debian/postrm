@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+
+# Remove autostart entry
+AUTOSTART_DIR="$HOME/.config/autostart"
+rm -f "$AUTOSTART_DIR/superv.desktop"
+
+# Kill running daemon if any
+if pgrep -f "superv-daemon.py" >/dev/null 2>&1; then
+    pkill -f "superv-daemon.py" 2>/dev/null || true
+fi

@@ -1,0 +1,9 @@
+superv (0.0.1) unstable; urgency=low
+
+  * Initial release as .deb package.
+  * Clipboard history with text, image, and file URI support.
+  * Super+V toggle popup with search and pin functionality.
+  * Library window for browsing all items.
+  * Autostart support via .desktop file.
+
+ -- SuperV Maintainers <superv@example.com>  Sat, 24 Aug 2026 12:00:00 +0000
