@@ -1,10 +1,10 @@
 Source: superv
 Section: utils
 Priority: optional
-Maintainer: SuperV Maintainers <superv@example.com>
+Maintainer: Jason Cand <jasoncand@gmail.com>
 Build-Depends: debhelper-compat (= 13), python3, dh-python
 Standards-Version: 4.6.2
-Homepage: https://github.com/example/superv
+Homepage: https://github.com/jasoncand/SuperV
 
 Package: superv
 Architecture: all
@@ -17,4 +17,11 @@ Description: Windows-style clipboard manager for Linux Mint
  browsing all copied items.
  .
  Press Super+V to toggle the popup. Pin items for persistence across
- reboots. Supports text, images, and file URIs.
+ reboots. Supports text (plain/formatted), images, files and media.
+ .
+ Includes a text expander: assign short commands like /terms to any item
+ via the library window, type them anywhere, and SuperV offers to expand
+ them into the assigned content.
+ .
+ Library window with grid/list views, folders, rich-text editor,
+ import/export, and full item management.
