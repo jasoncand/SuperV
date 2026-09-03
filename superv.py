@@ -1320,9 +1320,6 @@ class ClipPopup(Gtk.Window):
 
     def rebuild(self):
         sel_key = None
-        sel = self.listbox.get_selected_row()
-        if sel is not None and hasattr(sel, "entry"):
-            sel_key = entry_key(sel.entry)
 
         self.listbox.foreach(lambda c: self.listbox.remove(c))
         self.rows = []
@@ -1402,6 +1399,8 @@ class ClipPopup(Gtk.Window):
                 else f"{total} items")
         except Exception:
             pass
+        if restore_row is None and self.rows:
+            restore_row = self.rows[0]
         GLib.idle_add(lambda: (
             self.listbox.select_row(restore_row),
             self._ensure_visible(restore_row), False)[1])
@@ -1438,28 +1437,32 @@ class ClipPopup(Gtk.Window):
         self.hide()
 
     def _grab_pointer(self, attempt=0):
+        """Force X focus to the popup without a Gdk seat grab
+        (which would block all input to other windows)."""
         if not self.get_visible():
             return False
         win = self.get_window()
         if win is None:
             return False
-        if attempt < 6:
-            self.present()
-            self.search.grab_focus()
+        self.present()
+        self.search.grab_focus()
+        xid = win.get_xid()
+        try:
+            subprocess.Popen(
+                ["xdotool", "windowfocus", str(xid)],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except Exception:
+            pass
+        if attempt < 4:
+            # Re-check that focus actually landed on us; retry if not.
             try:
-                subprocess.Popen(
-                    ["xdotool", "windowfocus", str(win.get_xid())],
-                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                active = int(subprocess.run(
+                    ["xdotool", "getactivewindow"],
+                    capture_output=True, text=True, timeout=0.5).stdout.strip())
+                if active != xid:
+                    GLib.timeout_add(100, self._grab_pointer, attempt + 1)
             except Exception:
                 pass
-        display = self.get_display()
-        seat = display.get_default_seat()
-        cursor = Gdk.Cursor.new_from_name(display, "default")
-        status = seat.grab(win, Gdk.SeatCapabilities.ALL,
-                           True, cursor, None, None)
-        self.pointer_grabbed = status == Gdk.GrabStatus.SUCCESS
-        if not self.pointer_grabbed and attempt < 5:
-            GLib.timeout_add(120, self._grab_pointer, attempt + 1)
         return False
 
     @staticmethod
@@ -1477,8 +1480,7 @@ class ClipPopup(Gtk.Window):
         if not self.get_visible():
             return False
         if self._menu_open or self.edit_dialog is not None:
-            return True  # menu/dialog is up — don't misread focus changes
-        # Pinned popups stay put no matter which window has focus.
+            return True
         if self._pinned_on_top:
             return True
         active = self._active_window_id()
@@ -1486,10 +1488,9 @@ class ClipPopup(Gtk.Window):
         me = win.get_xid() if win is not None else None
         if (me is not None and active is not None
                 and active != me
-                and active != getattr(self, "_prev_active", None)
                 and time.time() - self._shown_at > 0.3):
             self._focus_misses += 1
-            if self._focus_misses >= 2:
+            if self._focus_misses >= 1:
                 self.dismiss("poll-focus")
                 return False
         else:
@@ -1810,19 +1811,19 @@ class ClipPopup(Gtk.Window):
         self.tab_recent.set_active(True)
         self.tab_pinned.set_active(False)
         self.rebuild()
-        # Place the popup near the current mouse cursor (or the
-        # bottom of the focused window if we can't read the cursor).
         self._place_near_cursor()
         self.show_all()
         self.present()
         self.search.grab_focus()
         self._shown_at = time.time()
         self._focus_misses = 0
-        self._prev_active = self._active_window_id()
-        # No seat grab: that blocks input to every other app while
-        # the popup is open. We rely on the Gdk event filter for
-        # outside-click detection instead.
-        GLib.timeout_add(250, self._poll_active_window)
+        # Force the popup window to receive actual X focus so that
+        # focus-out-event fires on the first outside click.
+        win = self.get_window()
+        if win is not None:
+            self._prev_active = win.get_xid()
+        self._grab_pointer()
+        GLib.timeout_add(150, self._poll_active_window)
 
     def _place_near_cursor(self):
         """Position the popup just below-right of the mouse cursor,
